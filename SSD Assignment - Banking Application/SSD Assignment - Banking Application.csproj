@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -8,10 +8,19 @@
     <Nullable>enable</Nullable>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>SSD project.pfx</AssemblyOriginatorKeyFile>
+    <UserSecretsId>f1a5456b-15d9-4f9c-8e64-a0c761ceba02</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Build" Version="17.4.0" />
+    <PackageReference Include="Microsoft.Build.Framework" Version="17.4.0" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="7.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="7.0.0" />
+    <PackageReference Include="NReco.Logging.File" Version="1.1.5" />
+    <PackageReference Include="System.Data.SQLite" Version="1.0.117" />
   </ItemGroup>
 
 </Project>

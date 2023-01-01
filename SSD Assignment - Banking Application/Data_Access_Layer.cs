@@ -5,25 +5,52 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
+using System.Data.SQLite;
+using System.Security.Cryptography;
+using System.Xml;
+using Microsoft.Build.Evaluation;
+using Microsoft.Build.Framework;
+using Microsoft.Extensions.Logging;
+
 
 namespace Banking_Application
 {
     public class Data_Access_Layer
     {
-
         private List<Bank_Account> accounts;
         public static String databaseName = "Banking Database.db";
-        private static Data_Access_Layer instance = new Data_Access_Layer();
 
-        private Data_Access_Layer()//Singleton Design Pattern (For Concurrency Control) - Use getInstance() Method Instead.
+        private static Data_Access_Layer instance;
+
+        public ILogger<Data_Access_Layer> _logger;
+
+        private Data_Access_Layer(ILogger<Data_Access_Layer> logger)
         {
             accounts = new List<Bank_Account>();
+            _logger = logger;
         }
+
 
         public static Data_Access_Layer getInstance()
         {
+            if (instance == null)
+            {
+                ILoggerFactory loggerFactory = LoggerFactory.Create(builder =>
+                {
+                    builder
+                        .AddFilter("Microsoft", LogLevel.Warning)
+                        .AddFilter("System", LogLevel.Warning)
+                        .AddConsole()
+                        .AddFile("Logs/log.txt");
+                });
+
+                ILogger<Data_Access_Layer> logger = loggerFactory.CreateLogger<Data_Access_Layer>();
+                instance = new Data_Access_Layer(logger);
+            }
             return instance;
         }
+
+
 
         private SqliteConnection getDatabaseConnection()
         {
@@ -38,6 +65,8 @@ namespace Banking_Application
 
         }
 
+
+
         private void initialiseDatabase()
         {
             using (var connection = getDatabaseConnection())
@@ -45,25 +74,48 @@ namespace Banking_Application
                 connection.Open();
                 var command = connection.CreateCommand();
                 command.CommandText =
-                @"
+                  @"
                     CREATE TABLE IF NOT EXISTS Bank_Accounts(    
-                        accountNo TEXT PRIMARY KEY,
-                        name TEXT NOT NULL,
-                        address_line_1 TEXT,
-                        address_line_2 TEXT,
-                        address_line_3 TEXT,
-                        town TEXT NOT NULL,
-                        balance REAL NOT NULL,
-                        accountType INTEGER NOT NULL,
-                        overdraftAmount REAL,
-                        interestRate REAL
+                      accountNo TEXT PRIMARY KEY,
+                      name TEXT NOT NULL,
+                      address_line_1 TEXT,
+                      address_line_2 TEXT,
+                      address_line_3 TEXT,
+                      town TEXT NOT NULL,
+                      balance REAL NOT NULL,
+                      accountType INTEGER NOT NULL,
+                      overdraftAmount REAL,
+                      interestRate REAL,
+                      hmac TEXT
                     ) WITHOUT ROWID
-                ";
-
-                command.ExecuteNonQuery();
+                  ";
                 
+                command.ExecuteNonQuery();
+
+               
             }
+            
+
+
         }
+
+        public byte[] createHmac()
+        {
+            string text = "hello world";
+
+            byte[] key = Encoding.ASCII.GetBytes(text);
+
+
+            HMAC hmac = new HMACSHA256(key);
+
+
+
+            return hmac.ComputeHash(key);//Calculate Hash Value
+
+        }
+
+
+
 
         public void loadBankAccounts()
         {
@@ -75,6 +127,7 @@ namespace Banking_Application
                 using (var connection = getDatabaseConnection())
                 {
                     connection.Open();
+
                     var command = connection.CreateCommand();
                     command.CommandText = "SELECT * FROM Bank_Accounts";
                     SqliteDataReader dr = command.ExecuteReader();
@@ -119,8 +172,11 @@ namespace Banking_Application
             }
         }
 
+     
         public String addBankAccount(Bank_Account ba) 
         {
+            
+
 
             if (ba.GetType() == typeof(Current_Account))
                 ba = (Current_Account)ba;
@@ -143,7 +199,7 @@ namespace Banking_Application
                     "'" + ba.address_line_3 + "', " +
                     "'" + ba.town + "', " +
                     ba.balance + ", " +
-                    (ba.GetType() == typeof(Current_Account) ? 1 : 2) + ", ";
+                    (ba.GetType() == typeof(Current_Account) ? 1 : 2) + ", " + createHmac() + ", ";
 
                 if (ba.GetType() == typeof(Current_Account))
                 {

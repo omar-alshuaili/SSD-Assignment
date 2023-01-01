@@ -2,19 +2,28 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using System.IO;
+using Microsoft.Extensions.Logging;
+
 namespace Banking_Application
 {
     public class Program
     {
         public static void Main(string[] args)
         {
-            
+
+
+
             Data_Access_Layer dal = Data_Access_Layer.getInstance();
+            ILogger _logger = dal._logger;
             dal.loadBankAccounts();
             bool running = true;
 
             do
             {
+
+                _logger.LogInformation("app is starting");
+
 
                 Console.WriteLine("");
                 Console.WriteLine("***Banking Application Menu***");
