@@ -11,6 +11,8 @@ using System.Xml;
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Framework;
 using Microsoft.Extensions.Logging;
+using System.Configuration;
+using System.Security.Cryptography;
 
 
 namespace Banking_Application
@@ -18,11 +20,13 @@ namespace Banking_Application
     public class Data_Access_Layer
     {
         private List<Bank_Account> accounts;
-        public static String databaseName = "Banking Database.db";
+        public  readonly static String databaseName = "Banking Database.db";
 
         private static Data_Access_Layer instance;
 
         public ILogger<Data_Access_Layer> _logger;
+
+        protected string secretKey = ConfigurationManager.AppSettings["secretKey"];
 
         private Data_Access_Layer(ILogger<Data_Access_Layer> logger)
         {
@@ -40,7 +44,6 @@ namespace Banking_Application
                     builder
                         .AddFilter("Microsoft", LogLevel.Warning)
                         .AddFilter("System", LogLevel.Warning)
-                        .AddConsole()
                         .AddFile("Logs/log.txt");
                 });
 
@@ -84,9 +87,9 @@ namespace Banking_Application
                       town TEXT NOT NULL,
                       balance REAL NOT NULL,
                       accountType INTEGER NOT NULL,
+                      hmac TEXT,
                       overdraftAmount REAL,
-                      interestRate REAL,
-                      hmac TEXT
+                      interestRate REAL
                     ) WITHOUT ROWID
                   ";
                 
@@ -99,19 +102,26 @@ namespace Banking_Application
 
         }
 
-        public byte[] createHmac()
+        public string createHmac(string data)
         {
-            string text = "hello world";
 
-            byte[] key = Encoding.ASCII.GetBytes(text);
+            byte[] dataBytes = Encoding.UTF8.GetBytes(data);
 
+            // Convert the key to a byte array
+            byte[] keyBytes = Encoding.UTF8.GetBytes(secretKey);
 
-            HMAC hmac = new HMACSHA256(key);
+            // Create a new HMAC object using the specified algorithm and key
+            HMAC hmac = HMAC.Create("HMACSHA256");
+            hmac.Key = keyBytes;
 
+            // Compute the HMAC of the data
+            byte[] hmacBytes = hmac.ComputeHash(dataBytes);
 
+            // Convert the HMAC to a hexadecimal string
+            string hmacHex = BitConverter.ToString(hmacBytes).Replace("-", "");
 
-            return hmac.ComputeHash(key);//Calculate Hash Value
-
+            return hmacHex;
+            
         }
 
 
@@ -199,7 +209,7 @@ namespace Banking_Application
                     "'" + ba.address_line_3 + "', " +
                     "'" + ba.town + "', " +
                     ba.balance + ", " +
-                    (ba.GetType() == typeof(Current_Account) ? 1 : 2) + ", " + createHmac() + ", ";
+                    (ba.GetType() == typeof(Current_Account) ? 1 : 2) + ", " + "'" + createHmac(ba.accountNo) + "', ";
 
                 if (ba.GetType() == typeof(Current_Account))
                 {
@@ -220,21 +230,64 @@ namespace Banking_Application
             return ba.accountNo;
 
         }
+        protected bool computeHmac(string data, string includedHmac)
+        {
+            string computedHmac;
+            using (var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secretKey)))
+            {
+                computedHmac = BitConverter.ToString(hmac.ComputeHash(Encoding.UTF8.GetBytes(data))).Replace("-","");
+            }
+
+            Console.WriteLine("this is hmac from data base " + includedHmac);
+            Console.WriteLine("");
+            Console.WriteLine("");
+            Console.WriteLine("");
+            Console.WriteLine("this is hmac from data base " + computedHmac);
+
+            return includedHmac == computedHmac ? true: false;
+
+        }
+
+        private string getHmac(string accNo)
+        {
+            using (var connection = getDatabaseConnection())
+            {
+                connection.Open();
+                var command = connection.CreateCommand();
+                command.CommandText =
+                    @"SELECT hmac FROM Bank_Accounts WHERE accountNo = @accNo";
+                command.Parameters.AddWithValue("@accNo", accNo);
+                var reader = command.ExecuteReader();
+
+                if (reader.Read())
+                {
+                    return reader["hmac"].ToString();
+                }
+            }
+
+            return null;
+        }
 
         public Bank_Account findBankAccountByAccNo(String accNo) 
-        { 
+        {
+
         
             foreach(Bank_Account ba in accounts)
             {
-
-                if (ba.accountNo.Equals(accNo))
+                
+                if (ba.accountNo.Equals(accNo) )
                 {
+                    if (!computeHmac(ba.accountNo, getHmac(ba.accountNo)))
+                    {
+                        throw new Exception("this account was not created by this app");
+                    }
+
                     return ba;
                 }
 
             }
 
-            return null; 
+            return null ; 
         }
 
         public bool closeBankAccount(String accNo) 

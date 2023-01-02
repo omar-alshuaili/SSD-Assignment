@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-
-using System.IO;
 using Microsoft.Extensions.Logging;
+using NLog.Extensions.Logging;
+using System.IO;
+using SSD_Assignment___Banking_Application;
+using System.Configuration;
 
 namespace Banking_Application
 {
@@ -12,19 +14,16 @@ namespace Banking_Application
         public static void Main(string[] args)
         {
 
-
-
             Data_Access_Layer dal = Data_Access_Layer.getInstance();
-            ILogger _logger = dal._logger;
+            Logs log = new Logs();
+
             dal.loadBankAccounts();
             bool running = true;
 
             do
             {
-
-                _logger.LogInformation("app is starting");
-
-
+                DateTime date = DateTime.Now;
+                log.saveLog("statrting the application", date.ToString("HH:mm:ss dd/MM/yy"));
                 Console.WriteLine("");
                 Console.WriteLine("***Banking Application Menu***");
                 Console.WriteLine("1. Add Bank Account");
