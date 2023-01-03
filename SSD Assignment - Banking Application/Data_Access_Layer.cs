@@ -203,7 +203,6 @@ namespace Banking_Application
             {
                 connection.Open();
                 var command = connection.CreateCommand();
-                command.CommandText = "PRAGMA key = 'dd';";
                 command.CommandText =
                 @"
                     INSERT INTO Bank_Accounts VALUES(" +
