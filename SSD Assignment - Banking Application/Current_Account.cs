@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Banking_Application
 {
-    public class Current_Account: Bank_Account
+    public partial class Current_Account: Bank_Account
     {
 
         public double overdraftAmount;
@@ -23,16 +24,35 @@ namespace Banking_Application
 
         public override bool withdraw(double amountToWithdraw)
         {
-            double avFunds = getAvailableFunds();
+            Assembly assembly = Assembly.GetCallingAssembly();
 
-            if (avFunds >= amountToWithdraw)
+            // Get the type of the calling class
+            Type callingType = assembly.GetType(
+            MethodBase.GetCurrentMethod().DeclaringType.FullName);
+
+            // Check if the calling class is derived from Bank_Account or is in the same assembly as Bank_Account
+            if (callingType.IsAssignableFrom(this.GetType()) ||
+                callingType.Assembly == this.GetType().Assembly)
             {
-                balance -= amountToWithdraw;
-                return true;
+                // The calling class is authorized, so allow the method to be invoked
+                double avFunds = getAvailableFunds();
+
+                if (avFunds >= amountToWithdraw)
+                {
+                    balance -= amountToWithdraw;
+                    return true;
+                }
+
+                else
+                    return false;
+            }
+            else
+            {
+                // The calling class is not authorized, so throw an exception
+                throw new UnauthorizedAccessException();
             }
 
-            else
-                return false;
+            
 
         }
 

@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<configuration>
+	<appSettings>
+		<add key="secretKey" value="am:Z*1THFI9'O[.Sq6,H"/>
+	</appSettings>
+</configuration>

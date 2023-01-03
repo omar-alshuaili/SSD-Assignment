@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Banking_Application
 {
-    public class Savings_Account: Bank_Account
+    public partial class Savings_Account: Bank_Account
     {
 
         public double interestRate;

@@ -5,8 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 /*
- * Student Name: 
- * Student No: 
+ * Student Name: Omar Alshuaili
+ * Student No: S00190262
  */
 
 namespace Banking_Application

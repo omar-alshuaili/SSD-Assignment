@@ -7,6 +7,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <SignAssembly>true</SignAssembly>
+	 
     <AssemblyOriginatorKeyFile>SSD project.pfx</AssemblyOriginatorKeyFile>
     <UserSecretsId>f1a5456b-15d9-4f9c-8e64-a0c761ceba02</UserSecretsId>
   </PropertyGroup>
@@ -22,7 +23,9 @@
     <PackageReference Include="NLog" Version="5.1.1" />
     <PackageReference Include="NLog.Extensions.Logging" Version="5.2.1" />
     <PackageReference Include="NReco.Logging.File" Version="1.1.5" />
+    <PackageReference Include="sqlite-net-sqlcipher" Version="1.8.116" />
     <PackageReference Include="System.Data.SQLite" Version="1.0.117" />
+    <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="7.0.0" />
   </ItemGroup>
 
 </Project>

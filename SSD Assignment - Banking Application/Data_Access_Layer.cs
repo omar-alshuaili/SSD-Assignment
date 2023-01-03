@@ -20,7 +20,7 @@ namespace Banking_Application
     public class Data_Access_Layer
     {
         private List<Bank_Account> accounts;
-        public  readonly static String databaseName = "Banking Database.db";
+        private  readonly static String databaseName = "Banking Database.db";
 
         private static Data_Access_Layer instance;
 
@@ -64,13 +64,19 @@ namespace Banking_Application
                 Mode = SqliteOpenMode.ReadWriteCreate
             }.ToString();
 
-            return new SqliteConnection(databaseConnectionString);
+            SqliteConnection connection = new SqliteConnection(databaseConnectionString);
+            SqliteCommand command = connection.CreateCommand();
+            // Encrypt the database file with the specified password
+            connection.Open();
+            command.ExecuteNonQuery();
+
+            return connection;
 
         }
 
 
 
-        private void initialiseDatabase()
+    private void initialiseDatabase()
         {
             using (var connection = getDatabaseConnection())
             {
@@ -92,17 +98,15 @@ namespace Banking_Application
                       interestRate REAL
                     ) WITHOUT ROWID
                   ";
-                
+                command.ExecuteNonQuery();
+                command.CommandText = "PRAGMA key = 'SSD project';";
                 command.ExecuteNonQuery();
 
-               
             }
-            
-
 
         }
 
-        public string createHmac(string data)
+        private string createHmac(string data)
         {
 
             byte[] dataBytes = Encoding.UTF8.GetBytes(data);
@@ -199,6 +203,7 @@ namespace Banking_Application
             {
                 connection.Open();
                 var command = connection.CreateCommand();
+                command.CommandText = "PRAGMA key = 'dd';";
                 command.CommandText =
                 @"
                     INSERT INTO Bank_Accounts VALUES(" +
@@ -223,6 +228,16 @@ namespace Banking_Application
                     command.CommandText += "NULL," + sa.interestRate + ")";
                 }
 
+                // Bind the values to the parameters
+                command.Parameters.AddWithValue("@accountNo", ba.accountNo);
+                command.Parameters.AddWithValue("@name", ba.name);
+                command.Parameters.AddWithValue("@address_line_1", ba.address_line_1);
+                command.Parameters.AddWithValue("@address_line_2", ba.address_line_2);
+                command.Parameters.AddWithValue("@address_line_3", ba.address_line_3);
+                command.Parameters.AddWithValue("@town", ba.town);
+                command.Parameters.AddWithValue("@balance", ba.balance);
+                command.Parameters.AddWithValue("@balance", ba.balance);
+
                 command.ExecuteNonQuery();
 
             }
@@ -237,12 +252,6 @@ namespace Banking_Application
             {
                 computedHmac = BitConverter.ToString(hmac.ComputeHash(Encoding.UTF8.GetBytes(data))).Replace("-","");
             }
-
-            Console.WriteLine("this is hmac from data base " + includedHmac);
-            Console.WriteLine("");
-            Console.WriteLine("");
-            Console.WriteLine("");
-            Console.WriteLine("this is hmac from data base " + computedHmac);
 
             return includedHmac == computedHmac ? true: false;
 

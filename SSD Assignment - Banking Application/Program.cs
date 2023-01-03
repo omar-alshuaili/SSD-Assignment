@@ -6,13 +6,21 @@ using NLog.Extensions.Logging;
 using System.IO;
 using SSD_Assignment___Banking_Application;
 using System.Configuration;
+using System.Diagnostics;
 
 namespace Banking_Application
 {
     public class Program
     {
+        private const int maxGarbage = 1000;
         public static void Main(string[] args)
         {
+
+
+
+         
+
+
 
             Data_Access_Layer dal = Data_Access_Layer.getInstance();
             Logs log = new Logs();
@@ -22,6 +30,8 @@ namespace Banking_Application
 
             do
             {
+                Console.WriteLine("Memory used before collection:       {0:N0}",
+                           GC.GetTotalMemory(false));
                 DateTime date = DateTime.Now;
                 log.saveLog("statrting the application", date.ToString("HH:mm:ss dd/MM/yy"));
                 Console.WriteLine("");
@@ -312,7 +322,7 @@ namespace Banking_Application
 
                             do
                             {
-
+                                
                                 if (loopCount > 0)
                                     Console.WriteLine("INVALID AMOUNT ENTERED - PLEASE TRY AGAIN");
 
@@ -341,7 +351,14 @@ namespace Banking_Application
                         }
                         break;
                     case "6":
+                        dal = null;
+                        log = null;
+                        GC.Collect();
+
+                        Console.WriteLine("Memory used after full collection:   {0:N0}",
+                                          GC.GetTotalMemory(true));
                         running = false;
+                        Environment.Exit(0);
                         break;
                     default:    
                         Console.WriteLine("INVALID OPTION CHOSEN - PLEASE TRY AGAIN");
@@ -352,6 +369,7 @@ namespace Banking_Application
             } while (running != false);
 
         }
-
+        
     }
+    
 }

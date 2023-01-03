@@ -5,10 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Security.Cryptography;
 using SSD_Assignment___Banking_Application;
-
-
-
-
+using System.Reflection;
+using System.Security.Permissions;
 namespace Banking_Application
 {
     public abstract class Bank_Account
@@ -56,7 +54,26 @@ namespace Banking_Application
         }
         public void lodge(double amountIn)
         {
-            balance += amountIn;
+            // Get the assembly of the calling class
+            Assembly assembly = Assembly.GetCallingAssembly();
+
+            // Get the type of the calling class
+            Type callingType = assembly.GetType(
+            MethodBase.GetCurrentMethod().DeclaringType.FullName);
+
+            // Check if the calling class is derived from Bank_Account or is in the same assembly as Bank_Account
+            if (callingType.IsAssignableFrom(this.GetType()) ||
+                callingType.Assembly == this.GetType().Assembly)
+            {
+                // The calling class is authorized, so allow the method to be invoked
+                balance += amountIn;
+            }
+            else
+            {
+                // The calling class is not authorized, so throw an exception
+                throw new UnauthorizedAccessException();
+            }
+
         }
         public abstract bool withdraw(double amountToWithdraw);
         public abstract double getAvailableFunds();
