@@ -33,7 +33,12 @@ namespace Banking_Application
                 Console.WriteLine("Memory used before collection:       {0:N0}",
                            GC.GetTotalMemory(false));
                 DateTime date = DateTime.Now;
+
+
+                //adding log 
                 log.saveLog("statrting the application", date.ToString("HH:mm:ss dd/MM/yy"));
+
+
                 Console.WriteLine("");
                 Console.WriteLine("***Banking Application Menu***");
                 Console.WriteLine("1. Add Bank Account");
@@ -48,6 +53,9 @@ namespace Banking_Application
                 switch(option)
                 {
                     case "1":
+                        //adding log 
+                        log.saveLog("trying to create an account", date.ToString("HH:mm:ss dd/MM/yy"));
+
                         String accountType = "";
                         int loopCount = 0;
                         
@@ -213,8 +221,13 @@ namespace Banking_Application
 
                         break;
                     case "2":
+                        //adding log 
+                        log.saveLog("trying to close an account", date.ToString("HH:mm:ss dd/MM/yy"));
                         Console.WriteLine("Enter Account Number: ");
                         accNo = Console.ReadLine();
+
+                        //adding log
+                        log.saveLog("searching for account " + accNo + "to delete", date.ToString("HH:mm:ss dd/MM/yy"));
 
                         ba = dal.findBankAccountByAccNo(accNo);
 
@@ -238,6 +251,8 @@ namespace Banking_Application
                                 {
                                     case "Y":
                                     case "y": dal.closeBankAccount(accNo);
+                                        //adding log
+                                        log.saveLog("account" + accNo + "was deleted", date.ToString("HH:mm:ss dd/MM/yy"));
                                         break;
                                     case "N":
                                     case "n":
@@ -303,6 +318,9 @@ namespace Banking_Application
                             } while (amountToLodge < 0);
 
                             dal.lodge(accNo, amountToLodge);
+                            //adding log
+                            log.saveLog("account" + accNo + "made lodge" + amountToLodge, date.ToString("HH:mm:ss dd/MM/yy"));
+
                         }
                         break;
                     case "5": //Withdraw
@@ -331,6 +349,8 @@ namespace Banking_Application
 
                                 try
                                 {
+                                    //adding log
+                                    log.saveLog("account" + accNo + "made Withdraw" + amountToWithdraw, date.ToString("HH:mm:ss dd/MM/yy"));
                                     amountToWithdraw = Convert.ToDouble(amountToWithdrawString);
                                 }
 
