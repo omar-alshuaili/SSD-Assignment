@@ -1,78 +1,73 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Security.Cryptography;
 using System.IO;
-
-
+using System.Security.Cryptography;
+using System.Text;
 
 namespace SSD_Assignment___Banking_Application
 {
-    public class Encrypt_data
+    public class EncryptData
     {
-        public static string EncryptString(string key, string plainText)
+        private static readonly int saltSize = 16;
+        private static readonly int keySize = 32;
+        private static readonly int iterations = 1000;
+
+        public static string EncryptString(string password, string plainText)
         {
-            byte[] iv = new byte[16];
-            byte[] array;
-
-
+            byte[] salt = new byte[saltSize];
+            new RNGCryptoServiceProvider().GetBytes(salt);
+            var key = new Rfc2898DeriveBytes(password, salt, iterations).GetBytes(keySize);
 
             using (Aes aes = Aes.Create())
             {
-                aes.Key = Encoding.UTF8.GetBytes(key);
-                aes.IV = iv;
+                aes.KeySize = 256;
+                aes.BlockSize = 128;
+                aes.Key = key;
+                aes.GenerateIV();
 
-
-
-                ICryptoTransform encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
-
-
-
-                using (MemoryStream memoryStream = new MemoryStream())
+                using (var memoryStream = new MemoryStream())
                 {
-                    using (CryptoStream cryptoStream = new CryptoStream((Stream)memoryStream, encryptor, CryptoStreamMode.Write))
+                    // Prepend salt to the cipher text
+                    memoryStream.Write(salt, 0, saltSize);
+                    // Prepend IV to the cipher text
+                    memoryStream.Write(aes.IV, 0, aes.IV.Length);
+
+                    using (var cryptoStream = new CryptoStream(memoryStream, aes.CreateEncryptor(), CryptoStreamMode.Write))
+                    using (var streamWriter = new StreamWriter(cryptoStream))
                     {
-                        using (StreamWriter streamWriter = new StreamWriter((Stream)cryptoStream))
-                        {
-                            streamWriter.Write(plainText);
-                        }
-                        array = memoryStream.ToArray();
+                        streamWriter.Write(plainText);
                     }
+
+                    return Convert.ToBase64String(memoryStream.ToArray());
                 }
             }
-            return Convert.ToBase64String(array);
         }
 
-
-
-
-
-        public static string DecryptString(string key, string cipherText)
+        public static string DecryptString(string password, string cipherText)
         {
-            byte[] iv = new byte[16];
-            byte[] buffer = Convert.FromBase64String(cipherText);
+            var fullCipher = Convert.FromBase64String(cipherText);
 
+            var salt = new byte[saltSize];
+            var iv = new byte[16];
+            var actualCipherText = new byte[fullCipher.Length - saltSize - iv.Length];
 
+            Buffer.BlockCopy(fullCipher, 0, salt, 0, saltSize);
+            Buffer.BlockCopy(fullCipher, saltSize, iv, 0, iv.Length);
+            Buffer.BlockCopy(fullCipher, saltSize + iv.Length, actualCipherText, 0, actualCipherText.Length);
+
+            var key = new Rfc2898DeriveBytes(password, salt, iterations).GetBytes(keySize);
 
             using (Aes aes = Aes.Create())
             {
-                aes.Key = Encoding.UTF8.GetBytes(key);
+                aes.KeySize = 256;
+                aes.BlockSize = 128;
+                aes.Key = key;
                 aes.IV = iv;
-                ICryptoTransform decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
 
-
-
-                using (MemoryStream memoryStream = new MemoryStream(buffer))
+                using (var memoryStream = new MemoryStream(actualCipherText))
+                using (var cryptoStream = new CryptoStream(memoryStream, aes.CreateDecryptor(), CryptoStreamMode.Read))
+                using (var streamReader = new StreamReader(cryptoStream))
                 {
-                    using (CryptoStream cryptoStream = new CryptoStream((Stream)memoryStream, decryptor, CryptoStreamMode.Read))
-                    {
-                        using (StreamReader streamReader = new StreamReader((Stream)cryptoStream))
-                        {
-                            return streamReader.ReadToEnd();
-                        }
-                    }
+                    return streamReader.ReadToEnd();
                 }
             }
         }

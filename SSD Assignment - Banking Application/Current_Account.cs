@@ -34,7 +34,7 @@ namespace Banking_Application
             if (callingType.IsAssignableFrom(this.GetType()) ||
                 callingType.Assembly == this.GetType().Assembly)
             {
-                // The calling class is authorized, so allow the method to be invoked
+                // The calling class is authorised, so allow the method to be invoked
                 double avFunds = getAvailableFunds();
 
                 if (avFunds >= amountToWithdraw)

@@ -15,32 +15,27 @@ namespace SSD_Assignment___Banking_Application
 
         public Logs()
         {
-           
+
         }
 
-        public void saveLog(string logMess, string logInfo )
+        public void saveLog(string logMess, string logInfo)
         {
             initialiseDatabase();
 
             using (var connection = getDatabaseConnection())
-                {
-                    connection.Open();
-                    var command = connection.CreateCommand();
-                    command.CommandText =
-                    @"
-                    INSERT INTO Logs VALUES(" +
-                        "'" + logMess + "', " +
-                        "'" + logInfo + "'" 
-                       +")";
+            {
+                connection.Open();
+                var command = connection.CreateCommand();
+                command.CommandText =
+                @"
+                    INSERT INTO Logs (message, info) VALUES (@logMess, @logInfo);
+                ";
 
+                command.Parameters.AddWithValue("@logMess", logMess);
+                command.Parameters.AddWithValue("@logInfo", logInfo);
 
-                    command.ExecuteNonQuery();
-                }
-
-            
-
-            
-
+                command.ExecuteNonQuery();
+            }
         }
 
         private void initialiseDatabase()
@@ -50,26 +45,19 @@ namespace SSD_Assignment___Banking_Application
                 connection.Open();
                 var command = connection.CreateCommand();
                 command.CommandText =
-                  @"
+                @"
                     CREATE TABLE IF NOT EXISTS Logs(    
                       message TEXT NOT NULL,
                       info TEXT NOT NULL
-                    )
-                  ";
-
+                    );
+                ";
 
                 command.ExecuteNonQuery();
-
-
             }
-
-
-
         }
 
         private SqliteConnection getDatabaseConnection()
         {
-
             String databaseConnectionString = new SqliteConnectionStringBuilder()
             {
                 DataSource = Logs.databaseName,
@@ -77,9 +65,6 @@ namespace SSD_Assignment___Banking_Application
             }.ToString();
 
             return new SqliteConnection(databaseConnectionString);
-
         }
-
     }
-
 }

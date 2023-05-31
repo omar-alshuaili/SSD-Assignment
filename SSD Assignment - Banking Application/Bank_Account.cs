@@ -37,11 +37,11 @@ namespace Banking_Application
                 aesAlgorithm.GenerateKey();
                 keyBase64 = Convert.ToBase64String(aesAlgorithm.Key);
                 this.accountNo = System.Guid.NewGuid().ToString();
-                this.name = Encrypt_data.EncryptString(keyBase64, name);
-                this.address_line_1 = Encrypt_data.EncryptString(keyBase64, address_line_1); ;
-                this.address_line_2 = Encrypt_data.EncryptString(keyBase64, address_line_2); ;
-                this.address_line_3 = Encrypt_data.EncryptString(keyBase64, address_line_3); ;
-                this.town = Encrypt_data.EncryptString(keyBase64, town);
+                this.name = EncryptData.EncryptString(keyBase64, name);
+                this.address_line_1 = EncryptData.EncryptString(keyBase64, address_line_1); ;
+                this.address_line_2 = EncryptData.EncryptString(keyBase64, address_line_2); ;
+                this.address_line_3 = EncryptData.EncryptString(keyBase64, address_line_3); ;
+                this.town = EncryptData.EncryptString(keyBase64, town);
                 this.balance = balance;
 
 
@@ -83,11 +83,11 @@ namespace Banking_Application
 
 
             return "\nAccount No: " + accountNo + "\n" +
-            "Name: " + Encrypt_data.DecryptString(keyBase64, name) + "\n" +
-            "Address Line 1: " + Encrypt_data.DecryptString(keyBase64, address_line_1) + "\n" +
-            "Address Line 2: " + Encrypt_data.DecryptString(keyBase64, address_line_2) + "\n" +
-            "Address Line 3: " + Encrypt_data.DecryptString(keyBase64, address_line_3) + "\n" +
-            "Town: " + Encrypt_data.DecryptString(keyBase64, town) + "\n" +
+            "Name: " + EncryptData.DecryptString(keyBase64, name) + "\n" +
+            "Address Line 1: " + EncryptData.DecryptString(keyBase64, address_line_1) + "\n" +
+            "Address Line 2: " + EncryptData.DecryptString(keyBase64, address_line_2) + "\n" +
+            "Address Line 3: " + EncryptData.DecryptString(keyBase64, address_line_3) + "\n" +
+            "Town: " + EncryptData.DecryptString(keyBase64, town) + "\n" +
             "Balance: " + balance + "\n";
 
 

@@ -12,6 +12,9 @@
     <UserSecretsId>f1a5456b-15d9-4f9c-8e64-a0c761ceba02</UserSecretsId>
   </PropertyGroup>
 
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Build" Version="17.4.0" />
     <PackageReference Include="Microsoft.Build.Framework" Version="17.4.0" />
